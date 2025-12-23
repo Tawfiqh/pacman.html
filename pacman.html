@@ -5,12 +5,14 @@
 - ✅ Setup Run Loop to update game state and render game
 - ✅ Move enemies + player
 - Handle Collisions
-- Add speed to enemies
-- Stop creatures going off of the map!
+- ✅ Add speed to enemies
+- ✅ Stop creatures going off of the map!
+- Give enemies random colours
 - Update Score
 - Add cherries!! If the player eats a cherry then he can eat the ghosts! 
 - Resize to window size -- zoom/scale 
 - Add walls - that the player can't move through etc
+- Add more enemies as times goes on!
 -->
 
 <!DOCTYPE html>
@@ -47,12 +49,11 @@
     // |__|  |__| /__/     \__\ |__| |__| \__|     \______| /__/     \__\ |__|  |__| |_______|
     class PacmanGame {
 
-        constructor(mapSize, runLoopInterval) { // default map size is 100 units
+        constructor(config) { // default map size is 100 units
             console.log('Welcome to Pacman 👻');
 
-
             // 1.
-            this.setupGameState(mapSize);
+            this.setupGameState(config.mapSize);
 
             // 2 - Setup the game map - with the map size
             this.renderer = new Renderer(this.gameState.mapSize)
@@ -61,7 +62,7 @@
             this.setupKeyboardControls();
 
             // 4
-            this.setupGameRunLoop(runLoopInterval);
+            this.setupGameRunLoop(config.runLoopInterval);
 
         }
 
@@ -69,12 +70,12 @@
             this.gameState = {
                 mapSize: mapSize, // Currently we just support a square map
                 enemies: [
-                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT), // TBC - random starting position!
-                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT),
-                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP),
-                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN)
+                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT, "pink", mapSize),
+                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT, "blue", mapSize),
+                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP, "green", mapSize),
+                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN, "red", mapSize)
                 ],
-                player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT)
+                player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT, mapSize)
             };
         }
 
@@ -119,13 +120,11 @@
             // Move player
             this.gameState.player.move()
 
-            var gameHasEnded = false;
             // Move enemies
             for (let enemy of this.gameState.enemies) {
                 enemy.move()
-                gameHasEnded = enemy.checkCollisionWithPlayer(this.gameState.player)
+                let gameHasEnded = enemy.checkCollisionWithPlayer(this.gameState.player)
                 if (gameHasEnded) { this.endGame() }
-
             }
 
         }
@@ -169,11 +168,13 @@
     // |_______/    | _|      | _| `._____||__|     |__|     |_______|_______/    
     class Creature {
 
-        constructor(x, y, direction, speed = 1) {
+        constructor(x, y, direction, mapSize, size = 5, speed = gameplayConstants.initialSpeed) {
             this.x = x;
             this.y = y;
             this.direction = direction;
             this.speed = speed
+            this.mapSize = mapSize;
+            this.size = size;
         }
 
 
@@ -192,33 +193,53 @@
                     this.x += this.speed;
                     break;
             }
+
+            this.loopAroundIfNeeded();
+        }
+
+        loopAroundIfNeeded() {
+            if (this.x < 0) { // too far left
+                this.x = this.mapSize
+            }
+            if (this.x > this.mapSize) { // too far right
+                this.x = 0
+            }
+            if (this.y < 0) { // too far up
+                this.y = this.mapSize
+            }
+            if (this.y > this.mapSize) { // too far down
+                this.y = 0
+            }
         }
     }
 
 
     class Ghost extends Creature {
-        currentMovesInSameDirection = 0;
-        MAX_MOVES_IN_SAME_DIRECTION = 10;
+        currentMoves = 0;
+        MAX_MOVES = gameplayConstants.enemyMaxMovesInSameDirection;
 
-        constructor(x, y, direction, speed = 1.1) {
+
+        constructor(x, y, direction, color, speed = gameplayConstants.enemySpeed) {
             super(x, y, direction, speed);
+            this.color = color;
         }
 
         move() {
             super.move();
-            this.currentMovesInSameDirection++;
-            if (this.currentMovesInSameDirection >= this.MAX_MOVES_IN_SAME_DIRECTION) {
-                this.turnAroundAndGetFaster();
+            this.currentMoves++;
+
+            if (this.currentMoves >= this.MAX_MOVES) {
+                this.turnAroundRandomlyAndGetFaster();
             }
         }
 
-        turnAroundAndGetFaster() {
+        turnAroundRandomlyAndGetFaster() {
             this.changeDirectionRandomly()
-            this.speed += 0.5
+            this.speed += gameplayConstants.enemyIncreaseSpeed
         }
         changeDirectionRandomly() {
             this.direction = randomDirection();
-            this.currentMovesInSameDirection = 0;
+            this.currentMoves = 0;
         }
 
         checkCollisionWithPlayer(player) {
@@ -231,13 +252,12 @@
 
     }
 
-
-    // .______       _______ .__   __.  _______   _______ .______      
-    // |   _  \     |   ____||  \ |  | |       \ |   ____||   _  \     
-    // |  |_)  |    |  |__   |   \|  | |  .--.  ||  |__   |  |_)  |    
-    // |      /     |   __|  |  . `  | |  |  |  ||   __|  |      /     
-    // |  |\  \----.|  |____ |  |\   | |  '--'  ||  |____ |  |\  \----.
-    // | _| `._____||_______||__| \__| |_______/ |_______|| _| `._____|
+    // .______       _______ .__   __.  _______   _______ .______       _______ .______      
+    // |   _  \     |   ____||  \ |  | |       \ |   ____||   _  \     |   ____||   _  \     
+    // |  |_)  |    |  |__   |   \|  | |  .--.  ||  |__   |  |_)  |    |  |__   |  |_)  |    
+    // |      /     |   __|  |  . `  | |  |  |  ||   __|  |      /     |   __|  |      /     
+    // |  |\  \----.|  |____ |  |\   | |  '--'  ||  |____ |  |\  \----.|  |____ |  |\  \----.
+    // | _| `._____||_______||__| \__| |_______/ |_______|| _| `._____||_______|| _| `._____|
     class Renderer {
 
         scaleFactor = 10; // this is the number of pixels per game unit
@@ -255,13 +275,12 @@
 
             const ctx = this.ctx
 
-            const characterSize = 5;
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.arc(
                 character.x * this.scaleFactor,
                 character.y * this.scaleFactor,
-                characterSize * this.scaleFactor,
+                character.size * this.scaleFactor,
                 0, 2 * Math.PI
             );
             ctx.stroke();
@@ -278,9 +297,9 @@
             // Render Player
             this.renderCharacter(gameState.player, "yellow")
 
-            // Move enemies
+            // Render enemies
             for (let enemy of gameState.enemies) {
-                this.renderCharacter(enemy, "red")
+                this.renderCharacter(enemy, enemy.color)
             }
         }
 
@@ -295,15 +314,18 @@
     // |  | |  . `  | |  |     |  |     |  |   /  /_\  \   |  |     |  |     \   \    |   __|  
     // |  | |  |\   | |  |     |  |     |  |  /  _____  \  |  `----.|  | .----)   |   |  |____ 
     // |__| |__| \__| |__|     |__|     |__| /__/     \__\ |_______||__| |_______/    |_______|
-    const config = {
-        speed: {
-            player: 1,
-            enemy: 1.1
-        },
-        mapSize: 100,
-        runLoopInterval: 150
+    const gameplayConstants = {
+        initialSpeed: 1,
+        enemySpeed: 1.1,
+        enemyIncreaseSpeed: 0.5,
+        enemyMaxMovesInSameDirection: 15,
     }
 
-    new PacmanGame(config.mapSize, config.runLoopInterval)
+    const config = {
+        mapSize: 100,
+        runLoopInterval: 100
+    }
+
+    new PacmanGame(config)
 
 </script>
