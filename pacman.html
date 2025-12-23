@@ -38,6 +38,109 @@
 </body>
 
 <script>
+
+    // .___  ___.      ___       __  .__   __.      _______      ___      .___  ___.  _______ 
+    // |   \/   |     /   \     |  | |  \ |  |     /  _____|    /   \     |   \/   | |   ____|
+    // |  \  /  |    /  ^  \    |  | |   \|  |    |  |  __     /  ^  \    |  \  /  | |  |__   
+    // |  |\/|  |   /  /_\  \   |  | |  . `  |    |  | |_ |   /  /_\  \   |  |\/|  | |   __|  
+    // |  |  |  |  /  _____  \  |  | |  |\   |    |  |__| |  /  _____  \  |  |  |  | |  |____ 
+    // |__|  |__| /__/     \__\ |__| |__| \__|     \______| /__/     \__\ |__|  |__| |_______|
+    class PacmanGame {
+
+        constructor(mapSize, runLoopInterval) { // default map size is 100 units
+            console.log('Welcome to Pacman 👻');
+
+
+            // 1.
+            this.setupGameState(mapSize);
+
+            // 2 - Setup the game map - with the map size
+            this.renderer = new Renderer(this.gameState.mapSize)
+
+            // 3.
+            this.setupKeyboardControls();
+
+            // 4
+            this.setupGameRunLoop(runLoopInterval);
+
+        }
+
+        setupGameState(mapSize) {
+            this.gameState = {
+                mapSize: mapSize, // Currently we just support a square map
+                enemies: [
+                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT), // TBC - random starting position!
+                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT),
+                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP),
+                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN)
+                ],
+                player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT)
+            };
+        }
+
+
+        movePlayerInDirection(direction) {
+            this.gameState.player.direction = direction;
+            console.log('MovePlayerInDirection', direction);
+        }
+
+        setupKeyboardControls() {
+
+            document.addEventListener('keydown', (event) => {
+                console.log('keydown', event.key);
+                switch (event.key) {
+                    case 'ArrowUp', 'w':
+                        this.movePlayerInDirection(DIRECTIONS.UP);
+                        break;
+                    case 'ArrowDown', 's':
+                        this.movePlayerInDirection(DIRECTIONS.DOWN);
+                        break;
+                    case 'ArrowLeft', 'a':
+                        this.movePlayerInDirection(DIRECTIONS.LEFT);
+                        break;
+                    case 'ArrowRight', 'd':
+                        this.movePlayerInDirection(DIRECTIONS.RIGHT);
+                        break;
+                }
+            });
+
+        }
+
+        runLoop; // this holds the interval id for the run loop so that we can cancel it later when game ends
+        setupGameRunLoop(runLoopInterval) {
+            this.runLoop = setInterval(() => { //RunLoop Code
+                console.log('RunLoop');
+                this.updateGameState();
+                this.renderGame();
+            }, runLoopInterval);
+        }
+
+        updateGameState() {
+            // Move player
+            this.gameState.player.move()
+
+            var gameHasEnded = false;
+            // Move enemies
+            for (let enemy of this.gameState.enemies) {
+                enemy.move()
+                gameHasEnded = enemy.checkCollisionWithPlayer(this.gameState.player)
+                if (gameHasEnded) { this.endGame() }
+
+            }
+
+        }
+
+        renderGame() {
+            this.renderer.renderGame(this.gameState);
+        }
+
+        endGame() {
+            clearInterval(this.runLoop)
+            this.renderer.gameOver()
+
+        }
+    }
+
     //  __    __   _______  __      .______    _______ .______          _______.
     // |  |  |  | |   ____||  |     |   _  \  |   ____||   _  \        /       |
     // |  |__|  | |  |__   |  |     |  |_)  | |  |__   |  |_)  |      |   (----`
@@ -129,108 +232,6 @@
     }
 
 
-    // .___  ___.      ___       __  .__   __.      _______      ___      .___  ___.  _______ 
-    // |   \/   |     /   \     |  | |  \ |  |     /  _____|    /   \     |   \/   | |   ____|
-    // |  \  /  |    /  ^  \    |  | |   \|  |    |  |  __     /  ^  \    |  \  /  | |  |__   
-    // |  |\/|  |   /  /_\  \   |  | |  . `  |    |  | |_ |   /  /_\  \   |  |\/|  | |   __|  
-    // |  |  |  |  /  _____  \  |  | |  |\   |    |  |__| |  /  _____  \  |  |  |  | |  |____ 
-    // |__|  |__| /__/     \__\ |__| |__| \__|     \______| /__/     \__\ |__|  |__| |_______|
-    class PacmanGame {
-        renderer = new Renderer()
-
-        constructor(mapSize, runLoopInterval) { // default map size is 100 units
-            console.log('Welcome to Pacman 👻');
-
-            // 1.
-            this.setupGameState(mapSize);
-
-            // 2 - Setup the game map
-            this.renderer.setupGameMap(this.gameState.mapSize)
-
-            // 3.
-            this.setupKeyboardControls();
-
-            // 4
-            this.setupGameRunLoop(runLoopInterval);
-
-        }
-
-        setupGameState(mapSize) {
-            this.gameState = {
-                mapSize: mapSize, // Currently we just support a square map
-                enemies: [
-                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT), // TBC - random starting position!
-                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT),
-                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP),
-                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN)
-                ],
-                player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT)
-            };
-        }
-
-
-        movePlayerInDirection(direction) {
-            this.gameState.player.direction = direction;
-            console.log('MovePlayerInDirection', direction);
-        }
-
-        setupKeyboardControls() {
-
-            document.addEventListener('keydown', (event) => {
-                console.log('keydown', event.key);
-                switch (event.key) {
-                    case 'ArrowUp', 'w':
-                        this.movePlayerInDirection(DIRECTIONS.UP);
-                        break;
-                    case 'ArrowDown', 's':
-                        this.movePlayerInDirection(DIRECTIONS.DOWN);
-                        break;
-                    case 'ArrowLeft', 'a':
-                        this.movePlayerInDirection(DIRECTIONS.LEFT);
-                        break;
-                    case 'ArrowRight', 'd':
-                        this.movePlayerInDirection(DIRECTIONS.RIGHT);
-                        break;
-                }
-            });
-
-        }
-
-        runLoop; // this holds the interval id for the run loop so that we can cancel it later when game ends
-        setupGameRunLoop(runLoopInterval) {
-            this.runLoop = setInterval(() => { //RunLoop Code
-                console.log('RunLoop');
-                this.updateGameState();
-                this.renderGame();
-            }, runLoopInterval);
-        }
-
-        updateGameState() {
-            // Move player
-            this.gameState.player.move()
-
-            var gameHasEnded = false;
-            // Move enemies
-            for (let enemy of this.gameState.enemies) {
-                enemy.move()
-                gameHasEnded = enemy.checkCollisionWithPlayer(this.gameState.player)
-                if (gameHasEnded) { this.endGame() }
-
-            }
-
-        }
-
-        renderGame() {
-            this.renderer.renderGame(this.gameState);
-        }
-
-        endGame() {
-            clearInterval(this.runLoop)
-            this.renderer.gameOver()
-
-        }
-    }
-
     // .______       _______ .__   __.  _______   _______ .______      
     // |   _  \     |   ____||  \ |  | |       \ |   ____||   _  \     
     // |  |_)  |    |  |__   |   \|  | |  .--.  ||  |__   |  |_)  |    
@@ -241,7 +242,7 @@
 
         scaleFactor = 10; // this is the number of pixels per game unit
 
-        setupGameMap(initialSize) {
+        constructor(initialSize) {
             this.canvas = document.getElementById("gameBoard");
             this.ctx = this.canvas.getContext("2d");
 
@@ -288,7 +289,12 @@
         }
     }
 
-
+    //  __  .__   __.  __  .___________. __       ___       __       __       _______. _______ 
+    // |  | |  \ |  | |  | |           ||  |     /   \     |  |     |  |     /       ||   ____|
+    // |  | |   \|  | |  | `---|  |----`|  |    /  ^  \    |  |     |  |    |   (----`|  |__   
+    // |  | |  . `  | |  |     |  |     |  |   /  /_\  \   |  |     |  |     \   \    |   __|  
+    // |  | |  |\   | |  |     |  |     |  |  /  _____  \  |  `----.|  | .----)   |   |  |____ 
+    // |__| |__| \__| |__|     |__|     |__| /__/     \__\ |_______||__| |_______/    |_______|
     const config = {
         speed: {
             player: 1,
