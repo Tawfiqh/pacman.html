@@ -1,5 +1,4 @@
 <!-- Pacman Game TODO list
-- ✅ Test in browser    
 - ✅ Initialise Game State
 - ✅ Setup Keyboard Controls
 - ✅ Setup Run Loop to update game state and render game
@@ -7,16 +6,15 @@
 - ✅ Handle Collisions
 - ✅ Add speed to enemies
 - ✅ Stop creatures going off of the map!
-- ✅ Give enemies random colours
+- ✅ Give enemies colours
 - ✅ Update Score
-- Resize to window size -- zoom/scale (and centre the play window on the screen)
-- Animate pacman
-- Display score
-- Show score on end-screen
+- ✅ Resize to window size -- zoom/scale (and centre the play window on the screen)
+- ✅ Animate pacman
+- ✅ Display score
+- ✅ Show score on end-screen
 - Add cherries!! If the player eats a cherry then he can eat the ghosts! 
 - Add walls - that the player can't move through etc
 - Add more enemies as times goes on!
-
 - Restart button on end-screen
 -->
 
@@ -314,12 +312,13 @@
             // set width and height to gameState width and height
             this.canvas.width = initialSize * this.scaleFactor;
             this.canvas.height = initialSize * this.scaleFactor;
+
+            this.currentPlayerAnimationFrame = 0;
+            this.totalPlayerAnimationFrames = 24;
         }
 
         renderCharacter(character, color) {
-
             const ctx = this.ctx
-
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
@@ -334,6 +333,109 @@
         }
 
 
+
+        renderCharacterFace(character, color) {
+            this.renderCharacterMouth(character, color)
+            this.renderCharacterEye(character, color)
+        }
+
+        renderCharacterMouth(character, color) {
+
+            // How far through the animation are we? Calculate how much of an angle to render
+            function calculateMouthArc(percentage) {
+                return 0.33 * Math.PI * percentage;
+            }
+
+
+            function calculateDirectionOffset(direction) {
+                switch (direction) {
+                    case DIRECTIONS.RIGHT: //0 degrees
+                        return 0;
+                    case DIRECTIONS.LEFT: // 180 degrees to the left
+                        return Math.PI;
+                    case DIRECTIONS.UP: // TBC - not 100% sure why this is flipped - and not just 0.5 * Math.PI - should be rotated 90 Degrees Anti-Clockwise
+                        return 1.5 * Math.PI;
+                    case DIRECTIONS.DOWN: // TBC - not 100% sure why this is flipped - and not just 1.5 * Math.PI - should be rotated 270 Degrees Anti-Clockwise
+                        return 0.5 * Math.PI;
+                }
+            }
+
+            const mouthArcAngle = calculateMouthArc(
+                this.currentPlayerAnimationFrame / this.totalPlayerAnimationFrames,
+            );
+            this.currentPlayerAnimationFrame = (this.currentPlayerAnimationFrame + 1) % this.totalPlayerAnimationFrames;
+
+            const directionOffset = calculateDirectionOffset(character.direction);
+
+            // Draw an arc on the face - this is the mouth - which will open and close as the animation progresses
+            const ctx = this.ctx
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.arc(
+                character.x * this.scaleFactor,
+                character.y * this.scaleFactor,
+                character.size * this.scaleFactor,
+                directionOffset - mouthArcAngle,
+                directionOffset + mouthArcAngle,
+                false // draw the arc clockwise
+            );
+            ctx.lineTo(character.x * this.scaleFactor, character.y * this.scaleFactor);
+            ctx.stroke();
+            ctx.fill();
+        }
+
+        renderCharacterEye(character, color) {
+
+            // Draw an eye on the face - this is the left eye - which will move as the animation progresses
+
+            function calculateEyeOffset(direction) {
+                let xOffset = 0;
+                let yOffset = 0;
+
+                switch (direction) {
+                    case DIRECTIONS.RIGHT:
+                        xOffset = -1
+                        yOffset = -1
+                        break;
+                    case DIRECTIONS.LEFT:
+                        xOffset = 1
+                        yOffset = -1
+                        break;
+                    case DIRECTIONS.UP:
+                        xOffset = 1
+                        yOffset = 1
+                        break;
+                    case DIRECTIONS.DOWN:
+                        xOffset = -1
+                        yOffset = -1
+                        break;
+                }
+
+                return {
+                    x: xOffset * character.size * 0.4,
+                    y: yOffset * character.size * 0.4
+                };
+            }
+
+            const eyeOffset = calculateEyeOffset(character.direction);
+            const ctx = this.ctx
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.arc(
+                character.x * this.scaleFactor + eyeOffset.x * this.scaleFactor,
+                character.y * this.scaleFactor + eyeOffset.y * this.scaleFactor,
+                character.size * this.scaleFactor * 0.2,
+                0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+
+
+        }
+
+
+
         clearCanvas() {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
@@ -343,6 +445,8 @@
 
             // Render Player
             this.renderCharacter(gameState.player, "yellow")
+            this.renderCharacterFace(gameState.player, "darkblue")
+
 
             // Render enemies
             for (let enemy of gameState.enemies) {
