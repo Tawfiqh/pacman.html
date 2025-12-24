@@ -8,14 +8,15 @@
 - ✅ Add speed to enemies
 - ✅ Stop creatures going off of the map!
 - ✅ Give enemies random colours
-- Update Score
-- Add cherries!! If the player eats a cherry then he can eat the ghosts! 
-- Resize to window size -- zoom/scale 
-- Add walls - that the player can't move through etc
-- Add more enemies as times goes on!
+- ✅ Update Score
+- Resize to window size -- zoom/scale (and centre the play window on the screen)
 - Animate pacman
 - Display score
 - Show score on end-screen
+- Add cherries!! If the player eats a cherry then he can eat the ghosts! 
+- Add walls - that the player can't move through etc
+- Add more enemies as times goes on!
+
 - Restart button on end-screen
 -->
 
@@ -29,17 +30,18 @@
     <style>
         body {
             background-color: #000;
-            color: #fff;
         }
 
         .canvas-container {
             position: relative;
-            display: inline-block;
+            text-align: center;
+            padding-top: 44px;
         }
 
         canvas {
             border: 1px solid greenyellow;
             border-radius: 10px;
+            width: 80%;
         }
 
         #gameOver {
