@@ -148,16 +148,20 @@
             document.addEventListener('keydown', (event) => {
                 console.log('keydown', event.key);
                 switch (event.key) {
-                    case 'ArrowUp', 'w':
+                    case 'ArrowUp':
+                    case 'w':
                         this.movePlayerInDirection(DIRECTIONS.UP);
                         break;
-                    case 'ArrowDown', 's':
+                    case 'ArrowDown':
+                    case 's':
                         this.movePlayerInDirection(DIRECTIONS.DOWN);
                         break;
-                    case 'ArrowLeft', 'a':
+                    case 'ArrowLeft':
+                    case 'a':
                         this.movePlayerInDirection(DIRECTIONS.LEFT);
                         break;
-                    case 'ArrowRight', 'd':
+                    case 'ArrowRight':
+                    case 'd':
                         this.movePlayerInDirection(DIRECTIONS.RIGHT);
                         break;
                 }
@@ -367,18 +371,13 @@
         }
 
         renderCharacter(character, color) {
-            const ctx = this.ctx
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.arc(
-                character.x * this.scaleFactor,
-                character.y * this.scaleFactor,
-                character.size * this.scaleFactor,
-                0, 2 * Math.PI
-            );
-            ctx.stroke();
-            ctx.fill();
+            this.drawCircle(
+                character.x,
+                character.y,
+                character.size,
+                color
+            )
+
         }
 
         renderCharacterFace(character, color) {
@@ -465,21 +464,29 @@
             }
 
             const eyeOffset = calculateEyeOffset(character.direction);
+
+            this.drawCircle(
+                character.x + eyeOffset.x,
+                character.y + eyeOffset.y,
+                character.size * 0.2,
+                color
+            )
+        }
+
+        drawCircle(x, y, radius, color) {
             const ctx = this.ctx
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.arc(
-                character.x * this.scaleFactor + eyeOffset.x * this.scaleFactor,
-                character.y * this.scaleFactor + eyeOffset.y * this.scaleFactor,
-                character.size * this.scaleFactor * 0.2,
+                x * this.scaleFactor,
+                y * this.scaleFactor,
+                radius * this.scaleFactor,
                 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
 
-
         }
-
 
         clearCanvas() {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -493,6 +500,36 @@
         renderEnemy(enemy) {
             this.renderCharacter(enemy, enemy.color)
             this.renderGhostTrail(enemy, enemy.color)
+            this.renderGhostFace(enemy, enemy.color)
+        }
+
+        renderGhostFace(character, color) {
+            let eyeOffset = character.size * 0.4
+            let eyeRadius = character.size * 0.2
+
+            // Draw the right eye
+            this.drawCircle(
+                (character.x + eyeOffset),
+                (character.y - eyeOffset),
+                eyeRadius,
+                "darkblue"
+            )
+
+            // Draw the left eye
+            this.drawCircle(
+                (character.x - eyeOffset),
+                (character.y - eyeOffset),
+                eyeRadius,
+                "darkblue"
+            )
+
+            // Another circle for the mouth
+            this.drawCircle(
+                (character.x),
+                (character.y + eyeOffset),
+                eyeRadius * 1.4,
+                "darkblue"
+            )
         }
 
         renderGhostTrail(character, color) {
@@ -543,7 +580,7 @@
                 let controlPointY = bottomLeft[1] + controlPointOffset //Adjust the control point Y-offset to create the squiggle effect
 
                 // Draw an arc to the next point
-                ctx.arcTo(
+                ctx.arcTo( // Uses ArcTo: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/arcTo
                     controlPointX, controlPointY, // Control point 1
                     nextPointX, nextPointY, // Control point 2
                     bottomRightOffsetX / incrementsInSquiggle
@@ -554,9 +591,8 @@
                     nextPointY
                 ]
             }
-
-            // -=-=-=-=- end of squiggle now move back to the centre-=-=-=-=-
-            // Move back to the starting point
+            // -=-=-=-=- end of squiggle now move back to the starting point-=-=-=-=-
+            // 4. Move back to the starting point
             ctx.moveTo(startPosition[0], startPosition[1]);
 
             ctx.strokeStyle = color;
@@ -604,8 +640,8 @@
     const globalConstants = { // Put these in a variable so they can easily be tweaked
         initialSpeed: 1,
         creatureSize: 5,
-        enemySpeed: 0.1,
-        enemyIncreaseSpeed: 0.00,
+        enemySpeed: 0.8,
+        enemyIncreaseSpeed: 0.02,
         enemyMaxMovesInSameDirection: 15,
         scaleFactor: 20,
     }
