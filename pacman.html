@@ -15,6 +15,7 @@
 - ✅ Ghost trails and faces
 - ✅ Mobile support for touch
 - ✅ Instructions on how to play
+- ✅ Fix scrolling on mobile (should not scroll when swiping to play)
 - Add cherries!! If the player eats a cherry then they can eat the ghosts! 
 - Add walls - that the characters can't move through
 - Add more enemies as times goes on!
@@ -27,8 +28,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pacman 👻</title>
+    <title>Pacman 👻1.0</title>
     <style>
+        html,
+        body {
+            /* this is to prevent the page from scrolling when playing on mobile */
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
         body {
             background-color: #000;
             color: #fff;
@@ -175,7 +184,7 @@
             document.addEventListener('touchend', e => {
                 this.touchendX = e.changedTouches[0].screenX
                 this.touchendY = e.changedTouches[0].screenY
-                this.checkDirection()
+                this.checkSwipeDirection()
             })
 
         }
@@ -189,7 +198,7 @@
         touchstartY = 0
         touchendY = 0
 
-        checkDirection() {
+        checkSwipeDirection() {
 
             let xMovement = this.touchendX - this.touchstartX
             let yMovement = this.touchendY - this.touchstartY
