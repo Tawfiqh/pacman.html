@@ -8,12 +8,15 @@
 - ✅ Stop creatures going off of the map!
 - ✅ Give enemies colours
 - ✅ Update Score
-- ✅ Resize to window size -- zoom/scale (and centre the play window on the screen)
-- ✅ Animate pacman
 - ✅ Display score
 - ✅ Show score on end-screen
-- Add cherries!! If the player eats a cherry then he can eat the ghosts! 
-- Add walls - that the player can't move through etc
+- ✅ Resize to window size -- zoom/scale (and centre the play window on the screen)
+- ✅ Animate pacman
+- ✅ Ghost trails and faces
+- ✅ Mobile support for touch
+- ✅ Instructions on how to play
+- Add cherries!! If the player eats a cherry then they can eat the ghosts! 
+- Add walls - that the characters can't move through
 - Add more enemies as times goes on!
 - Restart button on end-screen
 -->
@@ -28,12 +31,26 @@
     <style>
         body {
             background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         .canvas-container {
             position: relative;
             text-align: center;
             padding-top: 44px;
+        }
+
+        .instructions-container {
+            text-align: center;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0px;
+        }
+
+        .instructions {
+            width: 80vw;
         }
 
         canvas {
@@ -51,7 +68,6 @@
             top: 50%;
             transform: translate(-50%, -50%);
             border: 1px solid greenyellow;
-
             border-radius: 10px;
 
             padding: 20px;
@@ -67,19 +83,22 @@
 </head>
 
 <body>
-
     <div class="canvas-container">
         <canvas id="gameBoard"></canvas>
         <div id="gameOver">
             <h1> Score: <span id="finalScore">0</span> </h1>
             <h1> Game Over - refresh to play again </h1>
-
+        </div>
+    </div>
+    <div class="instructions-container">
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <p>Use the arrow keys or swipe on your mobile to move Pacman! Avoid the ghosts and stay alive for as long as
+                possible!</p>
         </div>
     </div>
 </body>
-
 <script>
-
     // .___  ___.      ___       __  .__   __.      _______      ___      .___  ___.  _______ 
     // |   \/   |     /   \     |  | |  \ |  |     /  _____|    /   \     |   \/   | |   ____|
     // |  \  /  |    /  ^  \    |  | |   \|  |    |  |  __     /  ^  \    |  \  /  | |  |__   
@@ -88,7 +107,7 @@
     // |__|  |__| /__/     \__\ |__| |__| \__|     \______| /__/     \__\ |__|  |__| |_______|
     class PacmanGame {
 
-        constructor(config) { // default map size is 100 units
+        constructor(config) {
             console.log('Welcome to Pacman 👻');
 
             // 1.
@@ -109,10 +128,10 @@
             this.gameState = {
                 mapSize: mapSize, // Currently we just support a square map
                 enemies: [
-                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT, "pink", mapSize),
-                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT, "blue", mapSize),
-                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP, "green", mapSize),
-                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN, "red", mapSize)
+                    new Ghost(mapSize / 2, 0, DIRECTIONS.RIGHT, mapSize, "pink"),
+                    new Ghost(mapSize / 2, mapSize, DIRECTIONS.LEFT, mapSize, "blue"),
+                    new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP, mapSize, "green"),
+                    new Ghost(0, mapSize / 2, DIRECTIONS.DOWN, mapSize, "red")
                 ],
                 player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT, mapSize),
                 score: 0
@@ -126,7 +145,6 @@
         }
 
         setupKeyboardControls() {
-
             document.addEventListener('keydown', (event) => {
                 console.log('keydown', event.key);
                 switch (event.key) {
@@ -145,21 +163,58 @@
                 }
             });
 
+            document.addEventListener('touchstart', e => {
+                this.touchstartX = e.changedTouches[0].screenX
+                this.touchstartY = e.changedTouches[0].screenY
+            })
+
+            document.addEventListener('touchend', e => {
+                this.touchendX = e.changedTouches[0].screenX
+                this.touchendY = e.changedTouches[0].screenY
+                this.checkDirection()
+            })
+
+        }
+
+        // Mobile Touch logic -Source - https://stackoverflow.com/a/56663695
+        // Posted by Damjan Pavlica, modified by community. See post 'Timeline' for change history
+        // Retrieved 2025-12-25, License - CC BY-SA 4.0
+        touchstartX = 0
+        touchendX = 0
+
+        touchstartY = 0
+        touchendY = 0
+
+        checkDirection() {
+
+            let xMovement = this.touchendX - this.touchstartX
+            let yMovement = this.touchendY - this.touchstartY
+            if (Math.abs(xMovement) > Math.abs(yMovement)) { // More horizontal movement than vertical movement
+                if (xMovement > 0) {
+                    this.movePlayerInDirection(DIRECTIONS.RIGHT);
+                } else {
+                    this.movePlayerInDirection(DIRECTIONS.LEFT);
+                }
+            } else {
+                if (yMovement > 0) {
+                    this.movePlayerInDirection(DIRECTIONS.DOWN);
+                } else {
+                    this.movePlayerInDirection(DIRECTIONS.UP);
+                }
+            }
         }
 
         runLoop; // this holds the interval id for the run loop so that we can cancel it later when game ends
         setupGameRunLoop(runLoopInterval) {
             this.runLoop = setInterval(() => { //RunLoop Code
-                console.log('RunLoop');
                 this.updateGameState();
                 this.renderGame();
             }, runLoopInterval);
         }
 
         updateGameState() {
-            // Move player
-            this.gameState.player.move()
-            this.gameState.score += 1;
+            this.gameState.player.move()// Move player
+            this.gameState.score += 1; // Increment score
 
             // Move enemies
             for (let enemy of this.gameState.enemies) {
@@ -175,9 +230,8 @@
         }
 
         endGame() {
-            clearInterval(this.runLoop)
+            clearInterval(this.runLoop) // Cancel the run loop - stop it from updating
             this.renderer.gameOver(this.gameState.score)
-
         }
     }
 
@@ -209,12 +263,12 @@
     // |_______/    | _|      | _| `._____||__|     |__|     |_______|_______/    
     class Creature {
 
-        constructor(x, y, direction, mapSize, size = 5, speed = gameplayConstants.initialSpeed) {
+        constructor(x, y, direction, mapSize, size = globalConstants.creatureSize, speed = globalConstants.initialSpeed) {
             this.x = x;
             this.y = y;
             this.direction = direction;
             this.speed = speed
-            this.mapSize = mapSize;
+            this.mapSize = mapSize; // A bit strange to have mapSize here - but needed to check if the creature is off the map -- TBC if can refactor
             this.size = size;
         }
 
@@ -254,32 +308,27 @@
 
 
     class Ghost extends Creature {
-        currentMoves = 0;
-        MAX_MOVES = gameplayConstants.enemyMaxMovesInSameDirection;
+        currentMovesBeforeResetting = 0;
+        MAX_MOVES = globalConstants.enemyMaxMovesInSameDirection;
 
-
-        constructor(x, y, direction, color, speed = gameplayConstants.enemySpeed) {
-            super(x, y, direction, speed);
+        constructor(x, y, direction, mapSize, color, size = globalConstants.creatureSize, speed = globalConstants.enemySpeed) {
+            super(x, y, direction, mapSize, size, speed)
             this.color = color;
         }
 
         move() {
             super.move();
-            this.currentMoves++;
+            this.currentMovesBeforeResetting++;
 
-            if (this.currentMoves >= this.MAX_MOVES) {
+            if (this.currentMovesBeforeResetting >= this.MAX_MOVES) {
                 this.turnAroundRandomlyAndGetFaster();
+                this.currentMovesBeforeResetting = 0;
             }
         }
 
         turnAroundRandomlyAndGetFaster() {
-            this.changeDirectionRandomly()
-            this.speed += gameplayConstants.enemyIncreaseSpeed
-        }
-
-        changeDirectionRandomly() {
             this.direction = randomDirection();
-            this.currentMoves = 0;
+            this.speed += globalConstants.enemyIncreaseSpeed
         }
 
         checkCollisionWithPlayer(player) {
@@ -303,7 +352,7 @@
     // | _| `._____||_______||__| \__| |_______/ |_______|| _| `._____||_______|| _| `._____|
     class Renderer {
 
-        scaleFactor = 10; // this is the number of pixels per game unit
+        scaleFactor = globalConstants.scaleFactor; // this is the number of pixels per game unit
 
         constructor(initialSize) {
             this.canvas = document.getElementById("gameBoard");
@@ -331,8 +380,6 @@
             ctx.stroke();
             ctx.fill();
         }
-
-
 
         renderCharacterFace(character, color) {
             this.renderCharacterMouth(character, color)
@@ -388,7 +435,6 @@
         renderCharacterEye(character, color) {
 
             // Draw an eye on the face - this is the left eye - which will move as the animation progresses
-
             function calculateEyeOffset(direction) {
                 let xOffset = 0;
                 let yOffset = 0;
@@ -435,22 +481,100 @@
         }
 
 
-
         clearCanvas() {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        renderPlayer(player) {
+            this.renderCharacter(player, "yellow")
+            this.renderCharacterFace(player, "darkblue")
+        }
+
+        renderEnemy(enemy) {
+            this.renderCharacter(enemy, enemy.color)
+            this.renderGhostTrail(enemy, enemy.color)
+        }
+
+        renderGhostTrail(character, color) {
+            const ctx = this.ctx
+            ctx.beginPath();
+
+            // 1. Start at the top of the Ghost Head
+            const startPosition = [
+                character.x * this.scaleFactor,
+                (character.y - character.size) * this.scaleFactor
+            ]
+            ctx.moveTo(startPosition[0], startPosition[1]);
+
+            //2. Move down to the bottom left (with a small offset so that it's larger than just the circle of the character)
+            let trailOffset = (character.size * 1.1)
+
+            let bottomLeft = [
+                (character.x - trailOffset) * this.scaleFactor,
+                (character.y + trailOffset) * this.scaleFactor
+            ]
+            // Move down to the bottom left
+            ctx.lineTo(bottomLeft[0], bottomLeft[1]);
+
+
+            // 3. Draw a squiggle across to the bottom right (complex-ish bit)
+            //  -=-=-=-=- Now draw a squiggle across to the bottom right -=-=-=-=-
+            let bottomRight = [
+                (character.x + trailOffset) * this.scaleFactor,
+                bottomLeft[1] //no Y-variance as it's a flat line horizontally
+            ]
+
+            let bottomRightOffsetX = bottomRight[0] - bottomLeft[0]
+
+            let previousPoint = [ // Used within the for loop to calculate the control points
+                bottomLeft[0],
+                bottomLeft[1]
+            ]
+
+            const incrementsInSquiggle = 10
+            // For each increment draw an arc 1/10 along the way to the bottom right
+            for (let i = 1; i <= incrementsInSquiggle; i++) {
+                let nextPointX = bottomLeft[0] + (bottomRightOffsetX * (i / incrementsInSquiggle))
+                let nextPointY = bottomLeft[1] //no Y-variance as it's a flat line horizontally
+
+                let controlPointX = previousPoint[0] + (nextPointX - previousPoint[0]) / 2
+
+                let controlPointOffset = i % 2 === 0 ? 10 : -10;
+                let controlPointY = bottomLeft[1] + controlPointOffset //Adjust the control point Y-offset to create the squiggle effect
+
+                // Draw an arc to the next point
+                ctx.arcTo(
+                    controlPointX, controlPointY, // Control point 1
+                    nextPointX, nextPointY, // Control point 2
+                    bottomRightOffsetX / incrementsInSquiggle
+                ) // Radius
+
+                previousPoint = [
+                    nextPointX,
+                    nextPointY
+                ]
+            }
+
+            // -=-=-=-=- end of squiggle now move back to the centre-=-=-=-=-
+            // Move back to the starting point
+            ctx.moveTo(startPosition[0], startPosition[1]);
+
+            ctx.strokeStyle = color;
+            ctx.stroke();
+            ctx.fill();
+
         }
 
         renderGame(gameState) {
             this.clearCanvas();
 
             // Render Player
-            this.renderCharacter(gameState.player, "yellow")
-            this.renderCharacterFace(gameState.player, "darkblue")
+            this.renderPlayer(gameState.player)
 
 
             // Render enemies
             for (let enemy of gameState.enemies) {
-                this.renderCharacter(enemy, enemy.color)
+                this.renderEnemy(enemy)
             }
 
             // Render score
@@ -477,11 +601,13 @@
     // |  | |  . `  | |  |     |  |     |  |   /  /_\  \   |  |     |  |     \   \    |   __|  
     // |  | |  |\   | |  |     |  |     |  |  /  _____  \  |  `----.|  | .----)   |   |  |____ 
     // |__| |__| \__| |__|     |__|     |__| /__/     \__\ |_______||__| |_______/    |_______|
-    const gameplayConstants = {
+    const globalConstants = { // Put these in a variable so they can easily be tweaked
         initialSpeed: 1,
-        enemySpeed: 1.1,
-        enemyIncreaseSpeed: 0.05,
+        creatureSize: 5,
+        enemySpeed: 0.1,
+        enemyIncreaseSpeed: 0.00,
         enemyMaxMovesInSameDirection: 15,
+        scaleFactor: 20,
     }
 
     const config = {
