@@ -1,7 +1,11 @@
 # Pacman Game
 
 # Overview
-Simple ~one page~ Pacman game in vanilla HTML/CSS/JS -- originally uploaded: https://gist.github.com/Tawfiqh/982d596869405e98c8618396f1041ad7
+Simple ~one page~ Pacman game in vanilla HTML/CSS/JS 
+
+_(Originally uploaded as one page: https://gist.github.com/Tawfiqh/982d596869405e98c8618396f1041ad7 )_
+
+
 Play it in browser here: https://tawfiq.co.uk/pacman
 
 # What the code does
