@@ -1,0 +1,23 @@
+# Pacman Game TODO list - https://tawfiq.co.uk/pacman
+
+- ✅ Initialise Game State
+- ✅ Setup Keyboard Controls
+- ✅ Setup Run Loop to update game state and render game
+- ✅ Move enemies + player
+- ✅ Handle Collisions
+- ✅ Add speed to enemies
+- ✅ Stop creatures going off of the map!
+- ✅ Give enemies colours
+- ✅ Update Score
+- ✅ Display score
+- ✅ Show score on end-screen
+- ✅ Resize to window size -- zoom/scale (and centre the play window on the screen)
+- ✅ Animate pacman
+- ✅ Ghost trails and faces
+- ✅ Mobile support for touch
+- ✅ Instructions on how to play
+- ✅ Fix scrolling on mobile (should not scroll when swiping to play)
+- Add cherries!! If the player eats a cherry then they can eat the ghosts! 
+- Add walls - that the characters can't move through
+- Add more enemies as times goes on!
+- Restart button on end-screen
