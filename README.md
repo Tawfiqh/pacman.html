@@ -43,6 +43,9 @@ The codebase is organized into several modules:
 - ✅ Instructions on how to play
 - ✅ Fix scrolling on mobile (should not scroll when swiping to play)
 - Add cherries!! If the player eats a cherry then they can eat the ghosts! 
+    - On run loop add cherries if not present
+    - or not added in a while
+
 - Add walls - that the characters can't move through
 - Add more enemies as times goes on!
 - Restart button on end-screen

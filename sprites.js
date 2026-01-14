@@ -49,6 +49,18 @@ class Creature {
             this.y = 0
         }
     }
+
+    checkCollisionWith(creature) {
+        let dx = Math.abs(creature.x - this.x);
+        let dy = Math.abs(creature.y - this.y);
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < creature.size + this.size) {
+            return true
+        }
+
+        return false
+    }
+
 }
 
 
@@ -76,15 +88,13 @@ class Ghost extends Creature {
         this.speed += globalConstants.enemyIncreaseSpeed
     }
 
-    checkCollisionWithPlayer(player) {
-        let dx = Math.abs(player.x - this.x);
-        let dy = Math.abs(player.y - this.y);
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < player.size + this.size) {
-            return true
-        }
 
-        return false
+}
+
+class Cherry extends Creature {
+
+    constructor(x, y, mapSize, size = globalConstants.creatureSize) {
+        super(x, y, DIRECTIONS.RIGHT, mapSize, size, 0) //TBC - can remove direction as not used
     }
 
 }

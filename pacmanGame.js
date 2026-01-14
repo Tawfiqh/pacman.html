@@ -33,6 +33,7 @@ class PacmanGame {
                 new Ghost(mapSize, mapSize / 2, DIRECTIONS.UP, mapSize, "green"),
                 new Ghost(0, mapSize / 2, DIRECTIONS.DOWN, mapSize, "red")
             ],
+            cherry: null,
             player: new Creature(mapSize / 2, mapSize / 2, DIRECTIONS.RIGHT, mapSize),
             score: 0
         };
@@ -116,16 +117,53 @@ class PacmanGame {
         }, runLoopInterval);
     }
 
-    updateGameState() {
-        this.gameState.player.move()// Move player
-        this.gameState.score += 1; // Increment score
 
-        // Move enemies
+    updateEnemies() {
         for (let enemy of this.gameState.enemies) {
             enemy.move()
-            let gameHasEnded = enemy.checkCollisionWithPlayer(this.gameState.player)
+            let gameHasEnded = enemy.checkCollisionWith(this.gameState.player)
             if (gameHasEnded) { this.endGame() }
         }
+    }
+
+    timeSinceLastCherries = 0
+
+    checkIfCherriesNeeded() {
+        const timeIntervalSinceLastCherries = (Date.now() - this.timeSinceLastCherries) / 1000
+        console.log('🍒Time since last cherries', timeIntervalSinceLastCherries, timeIntervalSinceLastCherries >= globalConstants.timeIntervalBetweenCherries)
+        return timeIntervalSinceLastCherries >= globalConstants.timeIntervalBetweenCherries;
+    }
+
+    generateCherry() {
+        //x, y, mapSize
+        const newCherry = new Cherry(
+            Math.random() * this.gameState.mapSize,
+            Math.random() * this.gameState.mapSize,
+            this.gameState.mapSize
+        )
+        this.gameState.cherry = newCherry
+        console.log('🍒Generated cherry', newCherry)
+    }
+
+    updateCherries() {
+        console.log('🍒Checking if cherries are needed')
+        const cherriesNeeded = this.checkIfCherriesNeeded()
+
+        if (cherriesNeeded) {
+            this.generateCherry()
+            this.timeSinceLastCherries = Date.now()
+        }
+
+        //TBC - remove cherries after a while
+
+    }
+
+    updateGameState() {
+        this.gameState.player.move()// Update player
+        this.gameState.score += 1; // Update score
+
+        this.updateCherries()
+        this.updateEnemies();
 
     }
 

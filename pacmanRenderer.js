@@ -252,12 +252,17 @@ class Renderer {
 
     }
 
+
+    renderCherry(cherry) { //tbc - make more of a cherry size
+        this.drawCircle(cherry.x, cherry.y, cherry.size, "red")
+    }
     renderGame(gameState) {
         this.clearCanvas();
 
         // Render Player
         this.renderPlayer(gameState.player)
 
+        this.renderCherry(gameState.cherry)
 
         // Render enemies
         for (let enemy of gameState.enemies) {
