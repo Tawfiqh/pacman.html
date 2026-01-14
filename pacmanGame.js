@@ -161,6 +161,7 @@ class PacmanGame {
 
             if (this.gameState.player.checkCollisionWith(this.gameState.cherry)) {
                 this.removeCherry()
+                this.gameState.score += 250
             }
 
             const cherryLifeSpanReached = this.checkCherryLifeSpan()
