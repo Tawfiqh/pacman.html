@@ -270,8 +270,9 @@ class Renderer {
 
         // Render Player
         this.renderPlayer(gameState.player)
-
-        this.renderCherry(gameState.cherry)
+        if (gameState.cherry) {
+            this.renderCherry(gameState.cherry)
+        }
 
         // Render enemies
         for (let enemy of gameState.enemies) {

@@ -130,7 +130,6 @@ class PacmanGame {
 
     checkIfCherriesNeeded() {
         const timeIntervalSinceLastCherries = (Date.now() - this.timeSinceLastCherries) / 1000
-        console.log('🍒Time since last cherries', timeIntervalSinceLastCherries, timeIntervalSinceLastCherries >= globalConstants.timeIntervalBetweenCherries)
         return timeIntervalSinceLastCherries >= globalConstants.timeIntervalBetweenCherries;
     }
 
@@ -142,20 +141,42 @@ class PacmanGame {
             this.gameState.mapSize
         )
         this.gameState.cherry = newCherry
+        this.timeSinceLastCherries = Date.now()
+
         console.log('🍒Generated cherry', newCherry)
     }
 
+    removeCherry() {
+        this.gameState.cherry = null
+        this.timeSinceLastCherries = Date.now()
+    }
+
+    checkCherryLifeSpan() {
+        const timeIntervalSinceLastCherries = (Date.now() - this.timeSinceLastCherries) / 1000
+        return timeIntervalSinceLastCherries >= globalConstants.cherryLifeSpan
+    }
+
     updateCherries() {
-        console.log('🍒Checking if cherries are needed')
-        const cherriesNeeded = this.checkIfCherriesNeeded()
+        if (this.gameState.cherry) { // if there is a cherry 
 
-        if (cherriesNeeded) {
-            this.generateCherry()
-            this.timeSinceLastCherries = Date.now()
+            if (this.gameState.player.checkCollisionWith(this.gameState.cherry)) {
+                this.removeCherry()
+            }
+
+            const cherryLifeSpanReached = this.checkCherryLifeSpan()
+            if (cherryLifeSpanReached) {
+                this.removeCherry()
+            }
+
         }
+        else {
+            // console.log('🍒Checking if cherries are needed')
+            const cherriesNeeded = this.checkIfCherriesNeeded()
 
-        //TBC - remove cherries after a while
-
+            if (cherriesNeeded) {
+                this.generateCherry()
+            }
+        }
     }
 
     updateGameState() {
