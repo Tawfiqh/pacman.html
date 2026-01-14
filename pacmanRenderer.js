@@ -254,7 +254,16 @@ class Renderer {
 
 
     renderCherry(cherry) { //tbc - make more of a cherry size
-        this.drawCircle(cherry.x, cherry.y, cherry.size, "red")
+        const cherryRadius = cherry.size * 0.5
+
+        //draw stem
+        this.drawCircle(cherry.x, cherry.y - cherryRadius, cherryRadius * 0.75, "green")
+
+        // Draw two cherries 🍒
+        this.drawCircle(cherry.x + cherryRadius / 2, cherry.y, cherryRadius, "brown")
+        this.drawCircle(cherry.x - cherryRadius / 2, cherry.y, cherryRadius, "red")
+
+
     }
     renderGame(gameState) {
         this.clearCanvas();
